@@ -2,3 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
+material_*
+mosaic_*
+target_*
+_old
+*.png
+*.jpg
