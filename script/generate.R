@@ -185,3 +185,5 @@ p %>%
   magick::image_append(stack=F) -> res
 res %>% 
   magick::image_write(str_glue("res_{format(Sys.time(),'%Y%m%d%H%M%S')}.png"))
+write_csv(tmp,str_glue("used_img_list_{format(Sys.time(),'%Y%m%d%H%M%S')}.csv"))
+
