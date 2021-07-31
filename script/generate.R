@@ -141,7 +141,7 @@ plan(sequential)
 # 同じ画像の使用回数に制限がある場合は、その回数を満たす下で最も類似度が高い画像を取り出す
 if (is.null(max_count)) {
   # 理論上最大にする
-  max_count <- tile_colnum*tile_rownum
+  max_count <- tile_colnum*tile_rownum+1
 }
 if (max_count*length(mat_material)<tile_colnum*tile_rownum) {
   stop("素材画像の枚数×同一の素材画像を重複して使える回数＜タイル数です。
@@ -158,8 +158,10 @@ for (x in 1:tile_colnum) {
   cat(str_glue("x = {x}"),"\n")
   for (y in 1:tile_rownum) {
     id <- find_first(similar_order[[x]][[y]],names(counter))
+    # counterをfilterするときは、まだmax_countに達していない画像から選ぶので、
+    # max_countから1引いた数でfilterすることに注意
     counter <- add_counter(counter,id) %>% 
-      filter_counter(max_count)
+      filter_counter(max_count-1)
     id_used_img <- c(id_used_img,id)
   }
 }
