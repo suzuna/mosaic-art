@@ -12,9 +12,9 @@ source(here("script/utils.R"),encoding="UTF-8")
 
 # 定数 ----------------------------------------------------------------------
 # 素材画像（リサイズ前）のパス
-tile_img_path <- here("../../thread_img_theater")
+dir_material_img <- here("../../thread_img_theater")
 # 素材画像（リサイズ後）のパス。このフォルダ内にリサイズした素材画像が作られる
-tile_resized_img_path <- here("material_img_theater_resized")
+path_material_resized_img <- here("material_img_theater_resized")
 
 # TODO: tile_rowpx -> resized_rowpx, tile_colpx -> resized_colpxに変更して他に影響出ないか確認する
 # モザイクアートの1タイルの縦と横のピクセル数
@@ -23,13 +23,13 @@ tile_colpx <- 50
 
 
 # 素材画像をタイルのpx数まで縮小する ------------------------------------------------------
-tile_path_rel <- list.files(tile_img_path,pattern="(jpg|jpeg|png)$",full.names=F,recursive=T)
-tile_path_abs <- list.files(tile_img_path,pattern="(jpg|jpeg|png)$",full.names=T,recursive=T)
+path_material_img_rel <- list.files(dir_material_img,pattern="(jpg|jpeg|png)$",full.names=F,recursive=T)
+path_material_img_abs <- list.files(dir_material_img,pattern="(jpg|jpeg|png)$",full.names=T,recursive=T)
 
 # リサイズ前と後のパスの対照表
-df_resize_path <- data.frame(old_path_rel=tile_path_rel,old_path_abs=fs::path_abs(tile_path_abs)) %>% 
+df_resize_path <- data.frame(old_path_rel=path_material_img_rel,old_path_abs=fs::path_abs(path_material_img_abs)) %>% 
   mutate(
-    new_path_dir_root=tile_resized_img_path,
+    new_path_dir_root=path_material_resized_img,
     new_path_abs=fs::path(new_path_dir_root,old_path_rel)
   ) %>% 
   # "_resized"を拡張子の前に挟む
