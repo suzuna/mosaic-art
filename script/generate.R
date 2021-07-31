@@ -27,6 +27,9 @@ scaling_prop <- 1/4
 # ターゲット画像の各タイルと素材画像の比較をRGB空間ではなくLab空間で行いたい場合はTRUEにする
 is_to_Lab <- FALSE
 
+# 同一の素材画像を使える回数の上限。1だと重複して使わない。重複に制限を設けない場合はNULLにする
+max_used_count <- 1
+
 
 # ターゲット画像をタイル数×タイルのpxまで引き伸ばす ----------------------------------------------
 target_img <- imager::load.image(target_img_path)
@@ -134,18 +137,17 @@ tictoc::toc()
 plan(sequential)
 
 
-tmp <- a %>% 
-  set_names(1:length(.)) %>% 
-  map(~{
-    .x %>% set_names(1:length(.))
-  }) %>% 
-  unlist() %>% 
-  data.frame(pos=names(.),id=as.integer(.)) %>% 
-  separate(col=pos,into=c("x","y"),sep="\\.") %>% 
-  left_join(df_tile_resized,by="id")
+# 最も類似度が高い画像を取り出す ------------------------------------------------------------------
+# 同じ画像の使用回数に制限がある場合は、その回数を満たす下で最も類似度が高い画像を取り出す
+if (is.null(max_used_count)) {
+  # 理論上最大にする
+  max_used_count <- tile_colnum*tile_rownum
+}
+if (max_used_count*length(mat)<tile_colnum*tile_rownum) {
+  stop("素材画像の枚数×同一の素材画像を重複して使える回数＜タイル数です。
+       max_used_countを大きい値にするか、NULLとしてください。")
+}
 
-
-# 画像使用制限あり ------------------------------------------------------------------
 df_grid <- expand.grid(x=1:tile_colnum,y=1:tile_rownum) %>% 
   arrange(x)
 counter <- numeric(length(names(mat))) %>% 
@@ -157,9 +159,8 @@ for (x in 1:tile_colnum) {
   for (y in 1:tile_rownum) {
     id <- find_first(a[[x]][[y]],names(counter))
     counter <- add_counter(counter,id) %>% 
-      filter_counter(0)
+      filter_counter(max_used_count)
     resa <- c(resa,id)
-    # cat(str_glue("x = {x}, y = {y} / id = {id}"),"\n")
   }
 }
 
