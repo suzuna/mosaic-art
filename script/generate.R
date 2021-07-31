@@ -11,9 +11,9 @@ source(here("script/utils.R"),encoding="UTF-8")
 
 # 定数 ----------------------------------------------------------------------
 # ターゲット画像のパス
-target_img_path <- here("target_img/littlecandy.png")
-# 素材画像（リサイズ後）のパス。このフォルダ内にリサイズした素材画像が作られる
-tile_resized_img_path <- here("material_img_theater_resized")
+path_target_img <- here("target_img/littlecandy.png")
+# 素材画像（リサイズ後）のフォルダのパス。
+dir_material_resized_img <- here("material_img_theater_resized")
 
 # モザイクアートの1タイルの縦と横のピクセル数
 tile_rowpx <- 37
@@ -28,11 +28,11 @@ scaling_prop <- 1/4
 is_to_Lab <- FALSE
 
 # 同一の素材画像を使える回数の上限。1だと重複して使わない。重複に制限を設けない場合はNULLにする
-max_used_count <- 1
+max_count <- 1
 
 
 # ターゲット画像をタイル数×タイルのpxまで引き伸ばす ----------------------------------------------
-target_img <- imager::load.image(target_img_path)
+target_img <- imager::load.image(path_target_img)
 target_img_colpx <- dim(target_img)[1]
 target_img_rowpx <- dim(target_img)[2]
 target_img_colrowprop <- target_img_colpx/target_img_rowpx
@@ -49,12 +49,12 @@ target_img_rowpx_after <- dim(target_img)[2]
 
 
 # 縮小した素材画像を読み込み、matrixの形式で持ち、グレースケール画像はカラー画像にする ---------------------------------------------
-tile_resized_path <- list.files(tile_resized_img_path,full.names=T)
-df_tile_resized <- data.frame(id=1:length(tile_resized_path),path=tile_resized_path)
+path_material_resized_img <- list.files(dir_material_resized_img,full.names=T)
+df_material_resized <- data.frame(id=1:length(path_material_resized_img),path=path_material_resized_img)
 
 plan(multisession)
 tictoc::tic()
-mat <- tile_resized_path %>% 
+mat_material <- path_material_resized_img %>% 
   future_map(~{
     tryCatch({
       img <- imager::load.image(.x)
@@ -81,7 +81,7 @@ plan(sequential)
 
 # ターゲット画像をタイルに分割し、ターゲット画像と素材画像をscaling_propへ縮小する -------------------------------------
 # 各要素はx（＝横軸）方向の分割で、その各要素の中にy（＝縦軸）方向の分割が入っている
-img_split <- imager::imsplit(target_img,axis="x",nb=tile_colnum) %>% 
+target_img_splited <- imager::imsplit(target_img,axis="x",nb=tile_colnum) %>% 
   map(~{
     .x %>% 
       imager::imsplit(axis="y",nb=tile_rownum)
@@ -93,7 +93,7 @@ img_split <- imager::imsplit(target_img,axis="x",nb=tile_colnum) %>%
       })
   })
 
-mat <- mat %>% 
+mat_material <- mat_material %>% 
   map(function(x) {
     imager::resize(x,size_x=tile_colpx*scaling_prop,size_y=tile_rowpx*scaling_prop)
   })
@@ -101,14 +101,14 @@ mat <- mat %>%
 
 # RGB空間からLab空間へ変換する（Lab空間を使いたい場合のみ） ---------------------------------------
 if (is_to_Lab) {
-  img_split <- img_split %>% 
+  target_img_splited <- target_img_splited %>% 
     map(function(x) {
       x %>% 
         map(function(y) {
           imager::RGBtoLab(y)
         })
     })
-  mat <- mat %>% 
+  mat_material <- mat_material %>% 
     map(function(x) {
       imager::RGBtoLab(x)
     })
@@ -119,7 +119,7 @@ if (is_to_Lab) {
 options(future.globals.maxSize=1.8*1024^3)
 plan(multisession)
 tictoc::tic()
-a <- img_split %>% 
+similar_order <- target_img_splited %>% 
   future_map(function(x) {
     x %>% 
       map(function(y) {
@@ -139,39 +139,39 @@ plan(sequential)
 
 # 最も類似度が高い画像を取り出す ------------------------------------------------------------------
 # 同じ画像の使用回数に制限がある場合は、その回数を満たす下で最も類似度が高い画像を取り出す
-if (is.null(max_used_count)) {
+if (is.null(max_count)) {
   # 理論上最大にする
-  max_used_count <- tile_colnum*tile_rownum
+  max_count <- tile_colnum*tile_rownum
 }
-if (max_used_count*length(mat)<tile_colnum*tile_rownum) {
+if (max_count*length(mat_material)<tile_colnum*tile_rownum) {
   stop("素材画像の枚数×同一の素材画像を重複して使える回数＜タイル数です。
-       max_used_countを大きい値にするか、NULLとしてください。")
+       max_countを大きい値にするか、NULLとしてください。")
 }
 
-df_grid <- expand.grid(x=1:tile_colnum,y=1:tile_rownum) %>% 
+df_used_img <- expand.grid(x=1:tile_colnum,y=1:tile_rownum) %>% 
   arrange(x)
-counter <- numeric(length(names(mat))) %>% 
-  set_names(names(mat))
+counter <- numeric(length(names(mat_material))) %>% 
+  set_names(names(mat_material))
 
-resa <- c()
+id_used_img <- c()
 for (x in 1:tile_colnum) {
   cat(str_glue("x = {x}"),"\n")
   for (y in 1:tile_rownum) {
-    id <- find_first(a[[x]][[y]],names(counter))
+    id <- find_first(similar_order[[x]][[y]],names(counter))
     counter <- add_counter(counter,id) %>% 
-      filter_counter(max_used_count)
-    resa <- c(resa,id)
+      filter_counter(max_count)
+    id_used_img <- c(id_used_img,id)
   }
 }
 
-tmp <- df_grid %>% 
-  mutate(id=resa) %>% 
+df_used_img <- df_used_img %>% 
+  mutate(id=id_used_img) %>% 
   mutate(id=as.integer(id)) %>% 
-  left_join(df_tile_resized,by="id")
+  left_join(df_material_resized,by="id")
 
 
 # 画像を生成する -----------------------------------------------------------------
-tmp %>% 
+result_img <- df_used_img %>% 
   mutate(x=as.integer(x),y=as.integer(y)) %>% 
   split(.$x) %>% 
   map(~{
@@ -180,11 +180,11 @@ tmp %>%
       map(~magick::image_read(.)) %>% 
       reduce(c) %>% 
       magick::image_append(stack=T)
-  }) -> p
-p %>% 
+  })
+result_img <- result_img %>% 
   reduce(c) %>% 
-  magick::image_append(stack=F) -> res
-res %>% 
-  magick::image_write(str_glue("res_{format(Sys.time(),'%Y%m%d%H%M%S')}.png"))
-write_csv(tmp,str_glue("used_img_list_{format(Sys.time(),'%Y%m%d%H%M%S')}.csv"))
+  magick::image_append(stack=F)
+result_img %>% 
+  magick::image_write(str_glue("mosaic_art_{format(Sys.time(),'%Y%m%d%H%M%S')}.png"))
+write_csv(df_used_img,str_glue("used_img_list_{format(Sys.time(),'%Y%m%d%H%M%S')}.csv"))
 
