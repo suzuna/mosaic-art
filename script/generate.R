@@ -49,7 +49,7 @@ target_img_rowpx_after <- dim(target_img)[2]
 
 
 # 縮小した素材画像を読み込み、matrixの形式で持ち、グレースケール画像はカラー画像にする ---------------------------------------------
-path_material_resized_img <- list.files(dir_material_resized_img,full.names=T)
+path_material_resized_img <- list.files(dir_material_resized_img,pattern="(jpg|jpeg|png)$",full.names=T,recursive=T)
 df_material_resized <- data.frame(id=1:length(path_material_resized_img),path=path_material_resized_img)
 
 plan(multisession)
@@ -123,7 +123,7 @@ similar_order <- target_img_splited %>%
   future_map(function(x) {
     x %>% 
       map(function(y) {
-        mat %>% 
+        mat_material %>% 
           map(function(z) {
             calc_similarity(y,z)
           }) %>% 
@@ -189,4 +189,3 @@ result_img <- result_img %>%
 result_img %>% 
   magick::image_write(str_glue("mosaic_art_{format(Sys.time(),'%Y%m%d%H%M%S')}.png"))
 write_csv(df_used_img,str_glue("used_img_list_{format(Sys.time(),'%Y%m%d%H%M%S')}.csv"))
-
