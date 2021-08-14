@@ -12,14 +12,14 @@ source(here("script/utils.R"),encoding="UTF-8")
 
 # 定数 ----------------------------------------------------------------------
 # 素材画像（リサイズ前）のパス
-dir_material_img <- here("../../thread_img_theater")
+dir_material_img <- here("../../img_Kin-iro_Mosaic")
 # 素材画像（リサイズ後）のパス。このフォルダ内にリサイズした素材画像が作られる
-path_material_resized_img <- here("material_img_theater_resized")
+path_material_resized_img <- here("material_img_resized/material_img_Kin-iro_Mosaic_resized")
 
 # TODO: tile_rowpx -> resized_rowpx, tile_colpx -> resized_colpxに変更して他に影響出ないか確認する
 # モザイクアートの1タイルの縦と横のピクセル数
-tile_rowpx <- 37
-tile_colpx <- 50
+tile_rowpx <- 36
+tile_colpx <- 64
 
 
 # 素材画像をタイルのpx数まで縮小する ------------------------------------------------------
