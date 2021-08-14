@@ -11,13 +11,13 @@ source(here("script/utils.R"),encoding="UTF-8")
 
 # 定数 ----------------------------------------------------------------------
 # ターゲット画像のパス
-path_target_img <- here("target_img/littlecandy.png")
+path_target_img <- here("target_img/Kin-iro_Mosaic_OP.jpg")
 # 素材画像（リサイズ後）のフォルダのパス。
-dir_material_resized_img <- here("material_img_theater_resized")
+dir_material_resized_img <- here("material_img_resized/material_img_Kin-iro_Mosaic_resized")
 
 # モザイクアートの1タイルの縦と横のピクセル数
-tile_rowpx <- 37
-tile_colpx <- 50
+tile_rowpx <- 36
+tile_colpx <- 64
 # モザイクアートの縦のタイル数
 tile_rownum <- 100
 
@@ -29,6 +29,9 @@ is_to_Lab <- FALSE
 
 # 同一の素材画像を使える回数の上限。1だと重複して使わない。重複に制限を設けない場合はNULLにする
 max_count <- 1
+
+# 類似度が最も高い画像を並べるタイルの順番を決めるseed。NULLの場合は左上から右下へ順に並べる
+seed <- 1234
 
 
 # ターゲット画像をタイル数×タイルのpxまで引き伸ばす ----------------------------------------------
@@ -149,32 +152,41 @@ if (max_count*length(mat_material)<tile_colnum*tile_rownum) {
 }
 
 df_used_img <- expand.grid(x=1:tile_colnum,y=1:tile_rownum) %>% 
-  arrange(x)
+  arrange(x) %>% 
+  mutate(idx=row_number(),id=NA_character_) %>% 
+  relocate(idx,x,y,id)
 counter <- numeric(length(names(mat_material))) %>% 
   set_names(names(mat_material))
 
-id_used_img <- c()
-for (x in 1:tile_colnum) {
-  cat(str_glue("x = {x}"),"\n")
-  for (y in 1:tile_rownum) {
-    id <- find_first(similar_order[[x]][[y]],names(counter))
-    # counterをfilterするときは、まだmax_countに達していない画像から選ぶので、
-    # max_countから1引いた数でfilterすることに注意
-    counter <- add_counter(counter,id) %>% 
-      filter_counter(max_count-1)
-    id_used_img <- c(id_used_img,id)
-  }
+if (is.null(seed)) {
+  # seedがNULLの場合は、順番に並べていく
+  idx <- df_used_img$idx
+} else {
+  set.seed(seed)
+  idx <- sample(df_used_img$idx,size=length(df_used_img$idx),replace=FALSE) 
+}
+
+for (i in idx) {
+  x <- df_used_img$x[i]
+  y <- df_used_img$y[i]
+  # cat(str_glue("idx: {i} x: {x} y: {y}"),"\n")
+  
+  selected_id <- find_first(similar_order[[x]][[y]],names(counter))
+  # counterをfilterするときは、まだmax_countに達していない画像から選ぶので、
+  # max_countから1引いた数でfilterすることに注意
+  counter <- add_counter(counter,selected_id) %>% 
+    filter_counter(max_count-1)
+  df_used_img <- df_used_img %>% 
+    mutate(id=if_else(idx==i,selected_id,id))
 }
 
 df_used_img <- df_used_img %>% 
-  mutate(id=id_used_img) %>% 
   mutate(id=as.integer(id)) %>% 
   left_join(df_material_resized,by="id")
 
 
 # 画像を生成する -----------------------------------------------------------------
 result_img <- df_used_img %>% 
-  mutate(x=as.integer(x),y=as.integer(y)) %>% 
   split(.$x) %>% 
   map(~{
     .x %>% 
