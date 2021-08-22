@@ -12,8 +12,8 @@ source(here("script/utils.R"),encoding="UTF-8")
 # 定数 ----------------------------------------------------------------------
 # ターゲット画像のパス
 path_target_img <- here("target_img/Kin-iro_Mosaic_OP.jpg")
-# 素材画像（リサイズ後）のフォルダのパス。
-dir_material_resized_img <- here("material_img_resized/material_img_Kin-iro_Mosaic_resized")
+# 素材画像のフォルダのパス。読み込みを高速にするため、事前にtile_colpx x tile_rowpxのサイズにリサイズしておく方がよい
+dir_material_img <- here("material_img_resized/material_img_Kin-iro_Mosaic_resized")
 
 # モザイクアートの1タイルの縦と横のピクセル数
 tile_rowpx <- 36
@@ -54,13 +54,13 @@ target_img_colpx_after <- dim(target_img)[1]
 target_img_rowpx_after <- dim(target_img)[2]
 
 
-# 縮小した素材画像を読み込み、matrixの形式で持ち、グレースケール画像はカラー画像にする ---------------------------------------------
-path_material_resized_img <- list.files(dir_material_resized_img,pattern="(jpg|jpeg|png)$",full.names=T,recursive=T)
-df_material_resized <- data.frame(id=1:length(path_material_resized_img),path=path_material_resized_img)
+# 素材画像を読み込み、matrixの形式で持ち、グレースケール画像はカラー画像にする ---------------------------------------------
+path_material_img <- list.files(dir_material_img,pattern="(jpg|jpeg|png)$",full.names=T,recursive=T)
+df_material <- data.frame(id=1:length(path_material_img),path=path_material_img)
 
 plan(multisession)
 tictoc::tic()
-mat_material <- path_material_resized_img %>% 
+mat_material <- path_material_img %>% 
   future_map(~{
     tryCatch({
       img <- imager::load.image(.x)
@@ -185,7 +185,7 @@ for (i in idx) {
 
 df_used_img <- df_used_img %>% 
   mutate(id=as.integer(id)) %>% 
-  left_join(df_material_resized,by="id")
+  left_join(df_material,by="id")
 
 
 # 画像を生成する -----------------------------------------------------------------
@@ -215,5 +215,5 @@ if (!is.null(degree_of_colorchange)) {
   img_after_colorchange <- img_before_colorchange*(1-degree_of_colorchange)+target_img*degree_of_colorchange
   
   filename_mosaic_art_after_colorchange <- str_glue("mosaic_art_after_colorchange_{filename_suffix}.png")
-  imager::save.image(img_after_colorchange,"resssss.png")
+  imager::save.image(img_after_colorchange,filename_mosaic_art_after_colorchange)
 }
