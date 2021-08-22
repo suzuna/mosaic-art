@@ -33,6 +33,9 @@ max_count <- 1
 # 類似度が最も高い画像を並べるタイルの順番を決めるseed。NULLの場合は左上から右下へ順に並べる
 seed <- 1234
 
+# 元の画像に合わせて色調変換する割合（0以上1以下）。色調変換しない場合はNULLにする
+degree_of_colorchange <- NULL
+
 
 # ターゲット画像をタイル数×タイルのpxまで引き伸ばす ----------------------------------------------
 target_img <- imager::load.image(path_target_img)
@@ -198,6 +201,19 @@ result_img <- df_used_img %>%
 result_img <- result_img %>% 
   reduce(c) %>% 
   magick::image_append(stack=F)
-result_img %>% 
-  magick::image_write(str_glue("mosaic_art_{format(Sys.time(),'%Y%m%d%H%M%S')}.png"))
-write_csv(df_used_img,str_glue("used_img_list_{format(Sys.time(),'%Y%m%d%H%M%S')}.csv"))
+
+# 書き出す
+filename_suffix <- format(Sys.time(),"%Y%m%d%H%M%S")
+filename_mosaic_art <- str_glue("mosaic_art_{filename_suffix}.png")
+filename_csv <- str_glue("used_img_list_{filename_suffix}.csv")
+
+magick::image_write(result_img,filename_mosaic_art)
+write_csv(df_used_img,filename_csv)
+
+if (!is.null(degree_of_colorchange)) {
+  img_before_colorchange <- load.image(filename_mosaic_art)
+  img_after_colorchange <- img_before_colorchange*(1-degree_of_colorchange)+target_img*degree_of_colorchange
+  
+  filename_mosaic_art_after_colorchange <- str_glue("mosaic_art_after_colorchange_{filename_suffix}.png")
+  imager::save.image(img_after_colorchange,"resssss.png")
+}
