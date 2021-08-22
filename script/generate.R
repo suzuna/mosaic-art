@@ -135,8 +135,8 @@ similar_order <- target_img_splited %>%
           }) %>% 
           unlist() %>% 
           sort(decreasing=F) %>% 
-          names() %>% 
-          head(tile_colnum*tile_rownum)
+          head(tile_colnum*tile_rownum) %>% 
+          names()
       })
   },.progress=T)
 tictoc::toc()
