@@ -230,6 +230,7 @@ if (!is.null(degree_of_colorchange)) {
 
 finish_time <- Sys.time()
 
+path_log <- fs::path(dir_output,str_glue("log_{suffix_dttm}.txt"))
 log_params <- list(
   created_at=suffix_dttm,
   begin_time=as.character(begin_time),finish_time=as.character(finish_time),
@@ -250,5 +251,4 @@ log_params <- list(
   degree_of_colorchange=ifelse(is.null(degree_of_colorchange),"NULL",degree_of_colorchange)
 )
 
-path_log <- fs::path(dir_output,str_glue("log_{suffix_dttm}.txt"))
 create_log(log_params,path_log)
