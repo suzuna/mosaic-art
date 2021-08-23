@@ -230,5 +230,24 @@ if (!is.null(degree_of_colorchange)) {
 
 finish_time <- Sys.time()
 
+log_params <- list(
+  created_at=suffix_dttm,
+  begin_time=as.character(begin_time),finish_time=as.character(finish_time),
+  diff=format(finish_time-begin_time,units="auto"),
+  path_mosaic_art=path_mosaic_art,
+  path_mosaic_art_after_colorchange=ifelse(is.null(degree_of_colorchange),"not created",path_mosaic_art_after_colorchange),
+  path_csv=path_csv,path_log=path_log,
+  path_target_img=path_target_img,
+  resolution_target_img=str_glue("{target_img_colpx} x {target_img_rowpx} -> {target_img_colpx_after} x {target_img_rowpx_after}"),
+  dir_material_img=dir_material_img,
+  num_material_img=str_glue("{length(path_material_img)} files"),
+  tile_colpx=tile_colpx,tile_colnum=tile_colnum,
+  tile_rowpx=tile_rowpx,tile_rownum=tile_rownum,
+  output=str_glue("{tile_colpx*tile_colnum} x {tile_rowpx*tile_rownum} ({tile_colnum*tile_rownum} tiles)"),
+  scaling_prop=scaling_prop,is_to_Lab=is_to_Lab,
+  max_count=max_count,seed=seed,
+  degree_of_colorchange=ifelse(is.null(degree_of_colorchange),"NULL",degree_of_colorchange)
+)
+
 path_log <- fs::path(dir_output,str_glue("log_{suffix_dttm}.txt"))
-create_log(path_log)
+create_log(log_params,path_log)
