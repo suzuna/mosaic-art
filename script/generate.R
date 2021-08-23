@@ -245,7 +245,8 @@ log_params <- list(
   tile_rowpx=tile_rowpx,tile_rownum=tile_rownum,
   output=str_glue("{tile_colpx*tile_colnum} x {tile_rowpx*tile_rownum} ({tile_colnum*tile_rownum} tiles)"),
   scaling_prop=scaling_prop,is_to_Lab=is_to_Lab,
-  max_count=max_count,seed=seed,
+  max_count=max_count,
+  seed=ifelse(is.null(seed),"NULL",seed),
   degree_of_colorchange=ifelse(is.null(degree_of_colorchange),"NULL",degree_of_colorchange)
 )
 
