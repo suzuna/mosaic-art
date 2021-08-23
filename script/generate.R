@@ -58,6 +58,21 @@ target_img_colpx_after <- dim(target_img)[1]
 target_img_rowpx_after <- dim(target_img)[2]
 
 
+# ターゲット画像をタイルに分割し、タイルのpx*scaling_propへ縮小する -------------------------------------
+# 各要素はx（＝横軸）方向の分割で、その各要素の中にy（＝縦軸）方向の分割が入っている
+target_img_splited <- imager::imsplit(target_img,axis="x",nb=tile_colnum) %>% 
+  map(~{
+    .x %>% 
+      imager::imsplit(axis="y",nb=tile_rownum)
+  }) %>% 
+  map(function(x) {
+    x %>% 
+      map(function(y) {
+        imager::resize(y,size_x=tile_colpx*scaling_prop,size_y=tile_rowpx*scaling_prop)
+      })
+  })
+
+
 # 素材画像を読み込み、matrixの形式で持ち、グレースケール画像はカラー画像にする ---------------------------------------------
 path_material_img <- list.files(dir_material_img,pattern="(jpg|jpeg|png)$",full.names=T,recursive=T)
 df_material <- data.frame(id=1:length(path_material_img),path=path_material_img)
@@ -68,6 +83,8 @@ mat_material <- path_material_img %>%
   future_map(~{
     tryCatch({
       img <- imager::load.image(.x)
+      # 素材画像をタイルのpx*scaling_propへ縮小した状態でデータを持つ
+      img <- imager::resize(img,size_x=tile_colpx*scaling_prop,size_y=tile_rowpx*scaling_prop)
       if (dim(img)[4]==1L) {
         img <- imager::add.color(img,TRUE)
       }
@@ -87,26 +104,6 @@ mat_material <- path_material_img %>%
   })
 tictoc::toc()
 plan(sequential)
-
-
-# ターゲット画像をタイルに分割し、ターゲット画像と素材画像をscaling_propへ縮小する -------------------------------------
-# 各要素はx（＝横軸）方向の分割で、その各要素の中にy（＝縦軸）方向の分割が入っている
-target_img_splited <- imager::imsplit(target_img,axis="x",nb=tile_colnum) %>% 
-  map(~{
-    .x %>% 
-      imager::imsplit(axis="y",nb=tile_rownum)
-  }) %>% 
-  map(function(x) {
-    x %>% 
-      map(function(y) {
-        imager::resize(y,size_x=tile_colpx*scaling_prop,size_y=tile_rowpx*scaling_prop)
-      })
-  })
-
-mat_material <- mat_material %>% 
-  map(function(x) {
-    imager::resize(x,size_x=tile_colpx*scaling_prop,size_y=tile_rowpx*scaling_prop)
-  })
 
 
 # RGB空間からLab空間へ変換する（Lab空間を使いたい場合のみ） ---------------------------------------
