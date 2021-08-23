@@ -5,6 +5,7 @@ library(furrr)
 library(magrittr)
 library(here)
 library(tictoc)
+library(fs)
 
 
 source(here("script/utils.R"),encoding="UTF-8")
@@ -14,6 +15,7 @@ source(here("script/utils.R"),encoding="UTF-8")
 path_target_img <- here("target_img/Kin-iro_Mosaic_OP.jpg")
 # 素材画像のフォルダのパス。読み込みを高速にするため、事前にtile_colpx x tile_rowpxのサイズにリサイズしておく方がよい
 dir_material_img <- here("material_img_resized/material_img_Kin-iro_Mosaic_resized")
+dir_output <- here("output")
 
 # モザイクアートの1タイルの縦と横のピクセル数
 tile_rowpx <- 36
@@ -38,6 +40,8 @@ degree_of_colorchange <- NULL
 
 
 # ターゲット画像をタイル数×タイルのpxまで引き伸ばす ----------------------------------------------
+begin_time <- Sys.time()
+
 target_img <- imager::load.image(path_target_img)
 target_img_colpx <- dim(target_img)[1]
 target_img_rowpx <- dim(target_img)[2]
@@ -202,18 +206,29 @@ result_img <- result_img %>%
   reduce(c) %>% 
   magick::image_append(stack=F)
 
-# 書き出す
-filename_suffix <- format(Sys.time(),"%Y%m%d%H%M%S")
-filename_mosaic_art <- str_glue("mosaic_art_{filename_suffix}.png")
-filename_csv <- str_glue("used_img_list_{filename_suffix}.csv")
 
-magick::image_write(result_img,filename_mosaic_art)
-write_csv(df_used_img,filename_csv)
+# 書き出す --------------------------------------------------------------------
+suffix_dttm <- format(Sys.time(),"%Y%m%d%H%M%S")
+dir_output <- here(fs::path(dir_output,str_glue("created_at_{suffix_dttm}")))
+if (!fs::dir_exists(dir_output)) {
+  fs::dir_create(dir_output)
+}
+
+path_mosaic_art <- fs::path(dir_output,str_glue("mosaic_art_{suffix_dttm}.png"))
+path_csv <- fs::path(dir_output,str_glue("used_img_list_{suffix_dttm}.csv"))
+
+magick::image_write(result_img,path_mosaic_art)
+write_csv(df_used_img,path_csv)
 
 if (!is.null(degree_of_colorchange)) {
-  img_before_colorchange <- load.image(filename_mosaic_art)
+  img_before_colorchange <- imager::load.image(path_mosaic_art)
   img_after_colorchange <- img_before_colorchange*(1-degree_of_colorchange)+target_img*degree_of_colorchange
   
-  filename_mosaic_art_after_colorchange <- str_glue("mosaic_art_after_colorchange_{filename_suffix}.png")
-  imager::save.image(img_after_colorchange,filename_mosaic_art_after_colorchange)
+  path_mosaic_art_after_colorchange <- fs::path(dir_output,str_glue("mosaic_art_after_colorchange_{suffix_dttm}.png"))
+  imager::save.image(img_after_colorchange,path_mosaic_art_after_colorchange)
 }
+
+finish_time <- Sys.time()
+
+path_log <- fs::path(dir_output,str_glue("log_{suffix_dttm}.txt"))
+create_log(path_log)

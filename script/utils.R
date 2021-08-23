@@ -87,3 +87,44 @@ add_counter <- function(counter,name) {
 filter_counter <- function(counter,value_threshold) {
   counter[counter<=value_threshold]
 }
+
+#' ログファイルを作成する
+#' @param path_log 作成するログのtxtファイルのパス
+#' @return NULL （path_logにtxtファイルが作成される）
+# 関数内はグローバル変数
+create_log <- function(path_log) {
+  write_lines(str_glue("log created at {suffix_dttm}"),path_log,append=T)
+  write_lines("",path_log,append=T)
+  
+  write_lines(str_glue("begin_time: {begin_time}"),path_log,append=T)
+  write_lines(str_glue("finish_time: {finish_time}"),path_log,append=T)
+  write_lines(str_glue("diff: {format(finish_time-begin_time,units='auto')}"),path_log,append=T)
+  write_lines("",path_log,append=T)
+  
+  write_lines(str_glue("path_mosaic_art: {path_mosaic_art}"),path_log,append=T)
+  if (is.null(degree_of_colorchange)) {
+    path_mosaic_art_after_colorchange <- "not created"
+    chr_degree_of_colorchange <- "NULL"
+  }
+  write_lines(str_glue("path_mosaic_art_after_colorchange: {path_mosaic_art_after_colorchange}"),path_log,append=T)
+  write_lines(str_glue("path_csv: {path_csv}"),path_log,append=T)
+  write_lines(str_glue("path_log: {path_log}"),path_log,append=T)
+  write_lines("",path_log,append=T)
+  
+  write_lines(str_glue("path_target_img: {path_target_img} ({target_img_colpx} x {target_img_rowpx} -> {target_img_colpx_after} x {target_img_rowpx_after})"),path_log,append=T)
+  write_lines(str_glue("dir_material_img: {dir_material_img} ({length(path_material_img)} files)"),path_log,append=T)
+  write_lines("",path_log,append=T)
+  
+  write_lines(str_glue("tile_colpx: {tile_colpx}"),path_log,append=T)
+  write_lines(str_glue("tile_colnum: {tile_colnum}"),path_log,append=T)
+  write_lines(str_glue("tile_rowpx: {tile_rowpx}"),path_log,append=T)
+  write_lines(str_glue("tile_rownum: {tile_rownum}"),path_log,append=T)
+  write_lines(str_glue("output: {tile_colpx*tile_colnum} x {tile_rowpx*tile_rownum} ({tile_colnum*tile_rownum} tiles)"),path_log,append=T)
+  write_lines("",path_log,append=T)
+  
+  write_lines(str_glue("scaling_prop: {round(scaling_prop,10)}"),path_log,append=T)
+  write_lines(str_glue("is_to_Lab: {is_to_Lab}"),path_log,append=T)
+  write_lines(str_glue("max_count: {max_count}"),path_log,append=T)
+  write_lines(str_glue("seed: {seed}"),path_log,append=T)
+  write_lines(str_glue("degree_of_colorchange: {chr_degree_of_colorchange}"),path_log,append=T)
+}
