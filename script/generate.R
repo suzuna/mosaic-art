@@ -6,37 +6,41 @@ library(magrittr)
 library(here)
 library(tictoc)
 library(fs)
+library(jsonlite)
 
 
 source(here("script/utils.R"),encoding="UTF-8")
 
 # 定数 ----------------------------------------------------------------------
+json_path <- here("settings_generate.json")
+json_data <- jsonlite::fromJSON(json_path)
+
 # ターゲット画像のパス
-path_target_img <- here("target_img/Kin-iro_Mosaic_OP.jpg")
+path_target_img <- here(json_data$path_target_img)
 # 素材画像のフォルダのパス。読み込みを高速にするため、事前にtile_colpx x tile_rowpxのサイズにリサイズしておく方がよい
-dir_material_img <- here("material_img_resized/material_img_Kin-iro_Mosaic_resized")
-dir_output <- here("output")
+dir_material_img <- here(json_data$dir_material_img)
+dir_output <- here(json_data$dir_output)
 
 # モザイクアートの1タイルの縦と横のピクセル数
-tile_rowpx <- 36
-tile_colpx <- 64
+tile_colpx <- json_data$tile_colpx
+tile_rowpx <- json_data$tile_rowpx
 # モザイクアートの縦のタイル数
-tile_rownum <- 100
+tile_rownum <- json_data$tile_rownum
 
 # 縮小した素材画像とターゲット画像の各タイルの類似度を求めるとき、両画像の縦と横をさらにこのサイズに縮小する
-scaling_prop <- 1/4
+scaling_prop <- json_data$scaling_prop
 
 # ターゲット画像の各タイルと素材画像の比較をRGB空間ではなくLab空間で行いたい場合はTRUEにする
-is_to_Lab <- FALSE
+is_to_Lab <- json_data$is_to_Lab
 
 # 同一の素材画像を使える回数の上限。1だと重複して使わない。重複に制限を設けない場合はNULLにする
-max_count <- 1
-
-# 類似度が最も高い画像を並べるタイルの順番を決めるseed。NULLの場合は左上から右下へ順に並べる
-seed <- 1234
+max_count <- json_data$max_count
 
 # 元の画像に合わせて色調変換する割合（0以上1以下）。色調変換しない場合はNULLにする
-degree_of_colorchange <- NULL
+degree_of_colorchange <- json_data$degree_of_colorchange
+
+# 類似度が最も高い画像を並べるタイルの順番を決めるseed。NULLの場合は左上から右下へ順に並べる
+seed <- json_data$seed
 
 
 # ターゲット画像をタイル数×タイルのpxまで引き伸ばす ----------------------------------------------

@@ -6,20 +6,24 @@ library(magrittr)
 library(here)
 library(fs)
 library(tictoc)
+library(jsonlite)
 
 
 source(here("script/utils.R"),encoding="UTF-8")
 
 # 定数 ----------------------------------------------------------------------
+json_path <- here("settings_resize.json")
+json_data <- jsonlite::fromJSON(json_path)
+
 # 素材画像（リサイズ前）のパス
-dir_material_img <- here("../../img_Kin-iro_Mosaic")
+dir_material_img <- here(json_data$dir_material_img)
 # 素材画像（リサイズ後）のパス。このフォルダ内にリサイズした素材画像が作られる
-path_material_resized_img <- here("material_img_resized/material_img_Kin-iro_Mosaic_resized")
+path_material_resized_img <- here(json_data$path_material_resized_img)
 
 # TODO: tile_rowpx -> resized_rowpx, tile_colpx -> resized_colpxに変更して他に影響出ないか確認する
 # モザイクアートの1タイルの縦と横のピクセル数
-tile_rowpx <- 36
-tile_colpx <- 64
+tile_colpx <- json_data$tile_colpx
+tile_rowpx <- json_data$tile_rowpx
 
 
 # 素材画像をタイルのpx数まで縮小する ------------------------------------------------------

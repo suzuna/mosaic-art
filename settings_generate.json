@@ -1,0 +1,13 @@
+{
+  "path_target_img": "target_img/Kin-iro_Mosaic_OP.jpg",
+  "dir_material_img": "material_img_resized/material_img_Kin-iro_Mosaic_resized",
+  "dir_output": "output",
+  "tile_colpx": 64,
+  "tile_rowpx": 36,
+  "tile_rownum": 100,
+  "scaling_prop": 0.25,
+  "is_to_Lab": false,
+  "max_count": 1,
+  "degree_of_colorchange": null,
+  "seed": 1234
+}
