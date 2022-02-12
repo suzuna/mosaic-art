@@ -26,7 +26,7 @@
 ## settings_resize.json
 
 - dir_material_img: 素材画像が入ったフォルダのパス
-- path_material_resized_img: 縮小した素材画像を格納したいフォルダのパス
+- dir_material_img_resized: 縮小した素材画像を格納したいフォルダのパス
 - tile_colpx: 縮小後の素材画像の横方向のpx（モザイクアートのタイル1個の横方向のpxになる）
 - tile_rowpx: 縮小後の素材画像の縦方向のpx（モザイクアートのタイル1個の縦方向のpxになる）
 

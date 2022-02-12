@@ -18,7 +18,7 @@ json_data <- jsonlite::fromJSON(json_path)
 # 素材画像（リサイズ前）のパス
 dir_material_img <- here(json_data$dir_material_img)
 # 素材画像（リサイズ後）のパス。このフォルダ内にリサイズした素材画像が作られる
-path_material_resized_img <- here(json_data$path_material_resized_img)
+dir_material_img_resized <- here(json_data$dir_material_img_resized)
 
 # TODO: tile_rowpx -> resized_rowpx, tile_colpx -> resized_colpxに変更して他に影響出ないか確認する
 # モザイクアートの1タイルの縦と横のピクセル数
@@ -33,7 +33,7 @@ path_material_img_abs <- list.files(dir_material_img,pattern="(jpg|jpeg|png)$",f
 # リサイズ前と後のパスの対照表
 df_resize_path <- data.frame(old_path_rel=path_material_img_rel,old_path_abs=fs::path_abs(path_material_img_abs)) %>% 
   mutate(
-    new_path_dir_root=path_material_resized_img,
+    new_path_dir_root=dir_material_img_resized,
     new_path_abs=fs::path(new_path_dir_root,old_path_rel)
   ) %>% 
   # "_resized"を拡張子の前に挟む
