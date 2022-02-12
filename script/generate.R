@@ -36,7 +36,7 @@ is_to_Lab <- json_data$is_to_Lab
 # 同一の素材画像を使える回数の上限。1だと重複して使わない。重複に制限を設けない場合はNULLにする
 max_count <- json_data$max_count
 
-# 元の画像に合わせて色調変換する割合（0以上1以下）。色調変換しない場合はNULLにする
+# 元の画像に合わせて色調変換する割合（0以上1以下）。色調変換しない場合は0にする
 degree_of_colorchange <- json_data$degree_of_colorchange
 
 # 類似度が最も高い画像を並べるタイルの順番を決めるseed。NULLの場合は左上から右下へ順に並べる
@@ -221,7 +221,7 @@ path_csv <- fs::path(dir_output,str_glue("used_img_list_{suffix_dttm}.csv"))
 magick::image_write(result_img,path_mosaic_art)
 write_csv(df_used_img,path_csv)
 
-if (!is.null(degree_of_colorchange)) {
+if (degree_of_colorchange>0) {
   img_before_colorchange <- imager::load.image(path_mosaic_art)
   img_after_colorchange <- img_before_colorchange*(1-degree_of_colorchange)+target_img*degree_of_colorchange
   
