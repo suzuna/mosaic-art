@@ -58,7 +58,8 @@ resize_img2 <- function(img,px_x,px_y) {
 #' @param y an object of class "cimg" (must be channel = 3)
 #' @return a numeric
 calc_similarity <- function(x,y) {
-  sum((x[,,1,1]-y[,,1,1])^2+(x[,,1,2]-y[,,1,2])^2+(x[,,1,3]-y[,,1,3])^2)
+  # xとyはwidth(px) x height(px) x depth(普通1) x channel(3)の4次元array
+  sum(sqrt((x[,,1,1]-y[,,1,1])^2+(x[,,1,2]-y[,,1,2])^2+(x[,,1,3]-y[,,1,3])^2))
 }
 
 # xの要素のうち、yにも含まれる要素の中で先頭に来るものを選ぶ
